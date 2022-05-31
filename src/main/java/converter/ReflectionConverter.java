@@ -37,32 +37,26 @@ public class ReflectionConverter implements Converter {
 
     @Override
     public Object toObject(Class<?> clazz, Map<String, Object> map) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        if (map != null) {
-            Constructor<?>[] allConstructors = clazz.getDeclaredConstructors();
-            Object object = instantiate(clazz);
+        if (map == null) {
+            return null;
+        }
+        Object object = instantiate(clazz);
+        setFields(clazz, object, map);
+        return object;
+    }
 
-            for (Constructor<?> ctor : allConstructors) {
-                paramLoop:
-                for (Parameter param : ctor.getParameters()) {
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        Object value = entry.getValue();
-                        if (value != null) {
-                            Class<?> parameterType = param.getType().isPrimitive() ? toPrimitive(value) : value.getClass();
-                            if (parameterType != null && param.getType().isAssignableFrom(parameterType)) {
-                                for (Field field : clazz.getDeclaredFields()) {
-                                    if (field.getName().equals(entry.getKey())) {
-                                        setFieldValue(object, field, value);
-                                        continue paramLoop;
-                                    }
-                                }
-                            }
-                        }
-                    }
+    private void setFields(Class<?> clazz, Object object, Map<String, Object> map) throws IllegalAccessException {
+        for (Field field : clazz.getDeclaredFields()) {
+            String fieldName = field.getName();
+            Object value = map.get(fieldName);
+            if (value != null) {
+                Class<?> parameterType = field.getType().isPrimitive() ? toPrimitive(value) : value.getClass();
+                if (parameterType != null && field.getType().isAssignableFrom(parameterType)) {
+                    setFieldValue(object, field, value);
+                } else {
+                    log.trace(object.getClass().getName() + " object's " + fieldName + " field type is not supported!");
                 }
             }
-            return object;
-        } else {
-            return null;
         }
     }
 
