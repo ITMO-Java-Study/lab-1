@@ -1,12 +1,22 @@
 package converter;
 
-import java.lang.reflect.*;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
 public class ReflectionConverter implements Converter {
+    Map<Class<?>, Class<?>> primitiveTypes = getPrimitiveTypes();
+
     @Override
     public void printFields(Object object) throws IllegalAccessException {
-        for(Field field : object.getClass().getDeclaredFields()) {
+        for (Field field : object.getClass().getDeclaredFields()) {
             System.out.println(field.getName());
             System.out.println(getFieldValue(object, field));
         }
@@ -72,25 +82,20 @@ public class ReflectionConverter implements Converter {
     }
 
     private Class<?> toPrimitive(Object object) {
-        if (object instanceof Integer) {
-            return int.class;
-        } else if (object instanceof Long) {
-            return long.class;
-        } else if (object instanceof Short) {
-            return short.class;
-        } else if (object instanceof Float) {
-            return float.class;
-        } else if (object instanceof Double) {
-            return double.class;
-        } else if (object instanceof Byte) {
-            return byte.class;
-        } else if (object instanceof Boolean) {
-            return boolean.class;
-        } else if (object instanceof Character) {
-            return char.class;
-        } else {
-            return null;
-        }
+        return primitiveTypes.get(object.getClass());
+    }
+
+    private Map<Class<?>, Class<?>> getPrimitiveTypes() {
+        Map<Class<?>, Class<?>> primitiveTypes = new HashMap<>();
+        primitiveTypes.put(Integer.class, int.class);
+        primitiveTypes.put(Short.class, short.class);
+        primitiveTypes.put(Long.class, long.class);
+        primitiveTypes.put(Float.class, float.class);
+        primitiveTypes.put(Double.class, double.class);
+        primitiveTypes.put(Byte.class, byte.class);
+        primitiveTypes.put(Boolean.class, boolean.class);
+        primitiveTypes.put(Character.class, char.class);
+        return primitiveTypes;
     }
 
     private Object instantiate(Class<?> clazz) throws InvocationTargetException, InstantiationException, IllegalAccessException {
