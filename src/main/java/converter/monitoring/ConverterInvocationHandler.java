@@ -20,7 +20,7 @@ public class ConverterInvocationHandler implements InvocationHandler {
         Instant start = Instant.now();
         Object result = method.invoke(delegate, args);
         Instant stop = Instant.now();
-        log.info("Execution of " + method.getName() + " finished in " + Duration.between(start, stop).toMillis());
+        log.info("Execution of " + method.getName() + " finished in " + Duration.between(start, stop).toNanos() + " ns");
 
         return result;
     }
